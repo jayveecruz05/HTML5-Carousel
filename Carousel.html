@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Carousel</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			outline: none;
+			-webkit-tap-highlight-color: rgba(255, 255, 255, 0);  /* mobile webkit */
+			-moz-tap-highlight-color: rgba(255, 255, 255, 0);
+			-ms-tap-highlight-color: rgba(255, 255, 255, 0);
+			tap-highlight-color: rgba(255, 255, 255, 0);
+			-webkit-transform-style: preserve-3d;
+			-moz-transform-style: preserve-3d;
+			-ms-transform-style: preserve-3d;
+			transform-style: preserve-3d;
+		}
+
+		div {
+			position: absolute;
+		}
+
+		/*.main {
+			position: relative;
+			background-color: gray;
+			width: 500px;
+			height: 500px;
+			margin: 0 auto;
+		}*/
+
+		.carousel {
+			width: 300px;
+			height: 250px;
+			/*top: 125px;
+			left: 100px;*/
+			overflow: hidden;
+			background-color: #FFF;
+			border: 1px solid #000;
+			box-sizing: border-box;
+		}
+
+		.object {
+			width: 300px;
+			height: 250px;
+			font-size: 90px;
+			text-align: center;
+			opacity: 0;
+			/*background-color: #000;*/
+			color: #000;
+		}
+
+		.objectTransition {
+			-webkit-transition: -webkit-transform 0.2s ease-in-out;
+			-moz-transition: -moz-transform 0.2s ease-in-out;
+			-ms-transition: -ms-transform 0.2s ease-in-out;
+			transition: transform 0.2s ease-in-out;
+		}
+
+		.controler {
+			width: 300px;
+			height: auto;
+			position: absolute;
+			top: 100px;
+			z-index: 1;
+		}
+
+		.previous, .next {
+			font-size: 40px;
+			font-weight: bolder;
+			position: relative;
+			cursor: pointer;
+			color: #000;
+			z-index: 1;
+			display: inline-block;
+
+			-webkit-transition: left .2s;
+			-moz-transition: left .2s;
+			-ms-transition: left .2s;
+			transition: left .2s;
+		}
+
+		.previous {
+			float: left;
+    		left: 10px;
+		}
+
+		.previous_move {
+			left: 0px;
+		}
+
+		.next {
+			float: right;
+    		left: -10px;
+		}
+
+		.next_move {
+			left: 0px;
+		}
+	</style>
+	<script src="hammer.min.js"></script>
+	<!-- <script src="https://hammerjs.github.io/dist/hammer.min.js"></script> -->
+</head>
+<body>
+	<div id="main" class="main">
+		<div id="carousel" class="carousel">
+			<div id="controler" class="controler">
+				<p id="previous" class="previous">&#60;</p>
+				<p id="next" class="next">&#62;</p>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var totalObjects = 5,
+			width = 300,
+			showSideObjects = false;
+			pastLeftObject = totalObjects,
+			currentObject = 1,
+			pastRightObject = (currentObject + 1),
+			futureObject = (pastRightObject + 1),
+			hammerOptions = {
+				domEvents: true
+			},
+			hammerTime_carousel = new Hammer(document.getElementById('carousel'), hammerOptions);
+
+		for (i = 1; i <= totalObjects; i++) {
+			carousel.innerHTML += '<div id="object' + i + '" class="object object' + i + '">' + i + '</div>';
+			// Generate Random Background '#' + Math.random().toString(16).slice(-6);
+		}
+
+		addControlsEvent();
+
+		function addControlsEvent() {
+			previous.addEventListener('click', left, false);
+			next.addEventListener('click', right, false);
+
+			previous.addEventListener('touchstart', left, false);
+			next.addEventListener('touchstart', right, false);
+
+			hammerTime_carousel.get('swipe').set({
+				enable: true,
+				direction: Hammer.DIRECTION_ALL
+			});
+
+			hammerTime_carousel.on('swipedown', up);
+			hammerTime_carousel.on('swipeup', down);
+
+			hammerTime_carousel.on('swipeleft', right);
+			hammerTime_carousel.on('swiperight', left);
+		}
+
+		function removeControlsEvent() {
+			previous.removeEventListener('click', left, false);
+			next.removeEventListener('click', right, false);
+
+			previous.removeEventListener('touchstart', left, false);
+			next.removeEventListener('touchstart', right, false);
+
+			hammerTime_carousel.off('swipedown', up);
+			hammerTime_carousel.off('swipeup', down);
+
+			hammerTime_carousel.off('swipeleft', right);
+			hammerTime_carousel.off('swiperight', left);
+		}
+
+		function eventTypeAndPreventEvent(e) {
+			// console.log(e);
+			console.log('Event Type: ' + e.type);
+			try {
+				e.stopImmediatePropagation();
+				event.stopImmediatePropagation();
+				e.stopPropagation();
+				event.stopPropagation();
+				e.preventDefault();
+				event.preventDefault();
+			} catch(error) { // for Hammer API
+				event.stopImmediatePropagation();
+				event.stopPropagation();
+				event.preventDefault();
+			}
+		}
+
+		function up(e) {
+			eventTypeAndPreventEvent(e);
+		}
+
+		function down(e) {
+			eventTypeAndPreventEvent(e);
+		}
+
+		function left(e) {
+			eventTypeAndPreventEvent(e);
+			previousObject();
+		}
+
+		function right(e) {
+			eventTypeAndPreventEvent(e);
+			nextObject();
+		}
+
+		if (!showSideObjects) {
+			translateInto0(currentObject);
+			console.log('CO: ' + currentObject + ' - PRO: ' + pastRightObject);
+		} else {
+			translateLesser(pastLeftObject);
+			translateInto0(currentObject);
+			translateGreater(pastRightObject);
+			console.log('PLO: ' + pastLeftObject + ' - CO: ' + currentObject + ' - PRO: ' + pastRightObject + ' - FO: ' + futureObject);
+		}
+
+		// console.log(document.getElementById('carousel').offsetWidth);
+
+		function translateLesserTheWidth(objectCount) {
+			document.getElementById('object' + objectCount).style.cssText += 'opacity: 1;' +
+																		     '-webkit-transform: translate3d(-' + (width * 2) + 'px, 0, 0);' +
+															   	  		     '-moz-transform: translate3d(-' + (width * 2) + 'px, 0, 0);' +
+															   	  		     '-ms-transform: translate3d(-' + (width * 2) + 'px, 0, 0);' +
+															   	  		     'transform: translate3d(-' + (width * 2) + 'px, 0, 0);';
+		}
+
+		function translateLesser(objectCount) {
+			document.getElementById('object' + objectCount).style.cssText += 'opacity: 1;' +
+																		     '-webkit-transform: translate3d(-' + width + 'px, 0, 0);' +
+															   	  		     '-moz-transform: translate3d(-' + width + 'px, 0, 0);' +
+															   	  		     '-ms-transform: translate3d(-' + width + 'px, 0, 0);' +
+															   	  		     'transform: translate3d(-' + width + 'px, 0, 0);';
+		}
+
+		function translateInto0(objectCount) {
+			document.getElementById('object' + objectCount).style.cssText += 'opacity: 1;' +
+																		     '-webkit-transform: translate3d(0, 0, 0);' +
+															   	  		     '-moz-transform: translate3d(0, 0, 0);' +
+															   	  		     '-ms-transform: translate3d(0, 0, 0);' +
+															   	  		     'transform: translate3d(0, 0, 0);';
+		}
+
+		function translateGreater(objectCount) {
+			document.getElementById('object' + objectCount).style.cssText += 'opacity: 1;' +
+																		     '-webkit-transform: translate3d(' + width + 'px, 0, 0);' +
+															   	  		     '-moz-transform: translate3d(' + width + 'px, 0, 0);' +
+															   	  		     '-ms-transform: translate3d(' + width + 'px, 0, 0);' +
+															   	  		     'transform: translate3d(' + width + 'px, 0, 0);';
+		}
+
+		function translateGreaterTheWidth(objectCount) {
+			document.getElementById('object' + objectCount).style.cssText += 'opacity: 1;' +
+																		     '-webkit-transform: translate3d(' + (width * 2) + 'px, 0, 0);' +
+															   	  		     '-moz-transform: translate3d(' + (width * 2) + 'px, 0, 0);' +
+															   	  		     '-ms-transform: translate3d(' + (width * 2) + 'px, 0, 0);' +
+															   	  		     'transform: translate3d(' + (width * 2) + 'px, 0, 0);';
+		}
+
+		function translateDefault(objectCount) {
+			document.getElementById('object' + objectCount).style.cssText += 'opacity: 0;' +
+																		     '-webkit-transform: translate3d(0, 0, 0);' +
+															   	  		     '-moz-transform: translate3d(0, 0, 0);' +
+															   	  		     '-ms-transform: translate3d(0, 0, 0);' +
+															   	  		     'transform: translate3d(0, 0, 0);';
+		}
+
+		function previousObject() {
+
+			removeControlsEvent();
+
+			previous.classList.add('previous_move');
+			setTimeout(function() {
+				previous.classList.remove('previous_move');
+			}, 200);
+
+			if (currentObject <= 1) {
+				if (!showSideObjects) {
+					pastRightObject = currentObject;
+					currentObject = totalObjects;
+					console.log('CO: ' + currentObject + ' - PRO: ' + pastRightObject);
+				} else {
+					pastRightObject = currentObject;
+
+					if (pastRightObject == totalObjects) {
+						futureObject = 1;
+					} else {
+						futureObject = (pastRightObject + 1);
+					}
+
+					currentObject = totalObjects;
+
+					if (currentObject == 1) {
+						pastLeftObject = totalObjects;
+					} else {
+						pastLeftObject = (currentObject - 1);
+					}
+
+					console.log('PLO: ' + pastLeftObject + ' - CO: ' + currentObject + ' - PRO: ' + pastRightObject + ' - FO: ' + futureObject);
+				}
+			} else {
+				if (!showSideObjects) {
+					pastRightObject = currentObject;
+					currentObject--;
+					console.log('CO: ' + currentObject + ' - PRO: ' + pastRightObject);
+				} else {
+					pastRightObject = currentObject;
+
+					if (pastRightObject == totalObjects) {
+						futureObject = 1;
+					} else {
+						futureObject = (pastRightObject + 1);
+					}
+
+					currentObject--;
+
+					if (currentObject == 1) {
+						pastLeftObject = totalObjects;
+					} else {
+						pastLeftObject = (currentObject - 1);
+					}
+
+					console.log('PLO: ' + pastLeftObject + ' - CO: ' + currentObject + ' - PRO: ' + pastRightObject + ' - FO: ' + futureObject);
+				}
+			}
+
+			if (!showSideObjects) {
+				translateLesser(currentObject);
+				translateInto0(pastRightObject);
+			} else {
+				translateLesserTheWidth(pastLeftObject);
+				translateLesser(currentObject);
+				translateInto0(pastRightObject);
+				translateGreater(futureObject);
+			}
+
+			setTimeout(function() {
+				if (showSideObjects) {
+					document.getElementById('object' + pastLeftObject).classList.add('objectTransition');
+					translateLesser(pastLeftObject);
+				}
+
+				document.getElementById('object' + currentObject).classList.add('objectTransition');
+				translateInto0(currentObject);
+
+				document.getElementById('object' + pastRightObject).classList.add('objectTransition');
+				translateGreater(pastRightObject);
+
+				if (showSideObjects) {
+					document.getElementById('object' + futureObject).classList.add('objectTransition');
+					translateGreaterTheWidth(futureObject);
+				}
+
+				setTimeout(function() {
+					if (!showSideObjects) {
+						document.getElementById('object' + pastRightObject).classList.remove('objectTransition');
+						translateDefault(pastRightObject);
+					} else {
+						document.getElementById('object' + futureObject).classList.remove('objectTransition');
+						translateDefault(futureObject);
+					}
+
+					addControlsEvent();
+				}, 200);
+
+			}, 100);
+			
+		}
+
+		function nextObject() {
+
+			removeControlsEvent();
+
+			next.classList.add('next_move');
+			setTimeout(function() {
+				next.classList.remove('next_move');
+			}, 200);
+
+			if (currentObject >= totalObjects) {
+				if (!showSideObjects) {
+					pastLeftObject = currentObject;
+					currentObject = 1;
+					console.log('PLO: ' + pastLeftObject + ' CO: ' + currentObject);
+				} else {
+					pastLeftObject = currentObject;
+
+					if (pastLeftObject == 1) {
+						futureObject = totalObjects;
+					} else {
+						futureObject = (pastLeftObject - 1);
+					}
+
+					currentObject = 1;
+
+					if (currentObject == totalObjects) {
+						pastRightObject = 1;
+					} else {
+						pastRightObject = (currentObject + 1);
+					}
+
+					console.log('FO: ' + futureObject + ' - PLO: ' + pastLeftObject + ' - CO: ' + currentObject + ' - PRO: ' + pastRightObject);
+				}
+			} else {
+				if (!showSideObjects) {
+					pastLeftObject = currentObject;
+					currentObject++;
+					console.log('PLO: ' + pastLeftObject + ' CO: ' + currentObject);
+				} else {
+					pastLeftObject = currentObject;
+
+					if (pastLeftObject == 1) {
+						futureObject = totalObjects;
+					} else {
+						futureObject = (pastLeftObject - 1);
+					}
+
+					currentObject++;
+
+					if (currentObject == totalObjects) {
+						pastRightObject = 1;
+					} else {
+						pastRightObject = (currentObject + 1);
+					}
+
+					console.log('FO: ' + futureObject + ' - PLO: ' + pastLeftObject + ' - CO: ' + currentObject + ' - PRO: ' + pastRightObject);
+				}
+			}
+
+			if (!showSideObjects) {
+				translateInto0(pastLeftObject);
+				translateGreater(currentObject);
+			} else {
+				translateLesser(futureObject);
+				translateInto0(pastLeftObject);
+				translateGreater(currentObject);
+				translateGreaterTheWidth(pastRightObject);
+			}
+
+			setTimeout(function() {
+				if (showSideObjects) {
+					document.getElementById('object' + futureObject).classList.add('objectTransition');
+					translateLesserTheWidth(futureObject);
+				}
+
+				document.getElementById('object' + pastLeftObject).classList.add('objectTransition');
+				translateLesser(pastLeftObject);
+
+				document.getElementById('object' + currentObject).classList.add('objectTransition');
+				translateInto0(currentObject);
+
+				if (showSideObjects) {
+					document.getElementById('object' + pastRightObject).classList.add('objectTransition');
+					translateGreater(pastRightObject);
+				}
+
+				setTimeout(function() {
+					if (!showSideObjects) {
+						document.getElementById('object' + pastLeftObject).classList.remove('objectTransition');
+						translateDefault(pastLeftObject);
+					} else {
+						document.getElementById('object' + futureObject).classList.remove('objectTransition');
+						translateDefault(futureObject);
+					}
+
+					addControlsEvent();
+				}, 200);
+
+			}, 100);
+		}
+	</script>
+</body>
+</html>
